@@ -39,6 +39,9 @@ class InventoryClient(object):
         fmt = CaseFormatKeys(case_name="cluster_id", severity_key="severity", case_timestamp="event_time")
         self._events_junit_exporter = JsonJunitExporter(fmt)
 
+    def get_url(self) -> str:
+        return self.inventory_url
+
     def get_host(self, configs: Configuration) -> str:
         parsed_host = urlparse(configs.host)
         parsed_inventory_url = urlparse(self.inventory_url)

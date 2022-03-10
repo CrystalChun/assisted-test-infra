@@ -29,6 +29,11 @@ variable "cpu_mode" {
   default     = "host-passthrough"
 }
 
+variable "boot_devices" {
+  type        = list(string)
+  description = "the list of boot devices in the desired order of boot"
+}
+
 variable "cluster_domain" {
   type        = string
   description = "The domain for the cluster that all DNS records must belong."

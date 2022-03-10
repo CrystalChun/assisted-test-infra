@@ -105,6 +105,9 @@ class TerraformController(LibvirtController):
             "worker_cpu_mode": kwargs.get("worker_cpu_mode", consts.WORKER_TF_CPU_MODE),
             "master_cpu_mode": kwargs.get("master_cpu_mode", consts.MASTER_TF_CPU_MODE),
             **self._get_disk_encryption_appliance(),
+            "net_xslt_file": kwargs.get("net_xslt_file"),
+            "master_boot_devices": kwargs.get("master_boot_devices", consts.DEFAULT_BOOT_DEVICES),
+            "worker_boot_devices": kwargs.get("worker_boot_devices", consts.DEFAULT_BOOT_DEVICES),
         }
 
         params.update(self._get_specific_tf_entity_params())
@@ -172,6 +175,9 @@ class TerraformController(LibvirtController):
         tfvars["running"] = running
         tfvars["libvirt_master_macs"] = static_network.generate_macs(self.params.master_count)
         tfvars["libvirt_worker_macs"] = static_network.generate_macs(self.params.worker_count)
+        tfvars["net_xslt_file"] = self.params.net_xslt_file
+        tfvars["master_boot_devices"] = self.params.master_boot_devices
+        tfvars["worker_boot_devices"] = self.params.worker_boot_devices
         tfvars.update(self.params)
         tfvars.update(self._secondary_tfvars())
 

@@ -199,6 +199,10 @@ class NodeController(ABC):
     def destroy_network(self, network: libvirt.virNetwork):
         pass
 
+    @abstractmethod
+    def set_ipxe_url(self, network_name: str, ipxe_url: str):
+        pass
+
     def notify_iso_ready(self) -> None:
         pass
 

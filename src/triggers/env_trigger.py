@@ -33,7 +33,7 @@ class Triggerable(ABC):
                 continue
 
             if not self.is_user_set(k):
-                log.debug(f"{self.__class__.__name__} - Trigger set {k} to {v}, Condition: {cond}")
+                log.info(f"{self.__class__.__name__} - Trigger set {k} to {v}, Condition: {cond}")
                 self._set(k, v)
             else:
                 log.warning(f"Skipping setting {k} to value {v} due that it already been set by the user")

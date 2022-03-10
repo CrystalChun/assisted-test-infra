@@ -57,6 +57,13 @@ _default_triggers = frozendict(
         "lso_operator": OlmOperatorsTrigger(condition="lso"),
         "cnv_operator": OlmOperatorsTrigger(condition="cnv"),
         "odf_operator": OlmOperatorsTrigger(condition="odf"),
+        "ipxe_boot": Trigger(
+            condition=("ipxe_boot", True),
+            download_image=False,
+            net_xslt_file="ipxe_boot.xsl",
+            master_boot_devices=["network"],
+            worker_boot_devices=["network"]
+        )
     }
 )
 

@@ -276,8 +276,11 @@ class BaseTest:
     @classmethod
     def _prepare_nodes_network(cls, prepared_nodes: Nodes, controller_configuration: BaseNodeConfig) -> Nodes:
         if global_variables.platform not in (consts.Platforms.BARE_METAL, consts.Platforms.NONE):
+            log.info("crystal logs global var not in baremetal %s", global_variables.platform)
             yield prepared_nodes
             return
+        log.info("crystal logs global var for ipxe boot %s", global_variables.ipxe_boot)
+        log.info("crystal logs global var in baremetal %s", global_variables.platform)
 
         interfaces = cls.nat_interfaces(controller_configuration)  # todo need to fix mismatch config types
         nat = NatController(interfaces, NatController.get_namespace_index(interfaces[0]))
@@ -288,6 +291,7 @@ class BaseTest:
     @pytest.fixture
     @JunitFixtureTestCase()
     def prepare_nodes_network(self, prepare_nodes: Nodes, controller_configuration: BaseNodeConfig) -> Nodes:
+        log.info("crystal logs preparing the nodes")
         yield from self._prepare_nodes_network(prepare_nodes, controller_configuration)
 
     @pytest.fixture
@@ -448,7 +452,7 @@ class BaseTest:
         def get_nodes_func(tf_config: BaseTerraformConfig, infraenv_config: InfraEnvConfig):
             if "nodes" in nodes_data:
                 return nodes_data["nodes"]
-
+            log.info("crystal logs in get nodes func ")
             nodes_data["configs"] = infraenv_config, tf_config
 
             net_asset = LibvirtNetworkAssets()
@@ -593,9 +597,11 @@ class BaseTest:
         ):
             given_node_ips = []
             given_nodes = given_nodes or cluster.nodes.nodes
-
+            log.info("crystal logs in setiptables for nodes")
+            
             if cluster.enable_image_download:
                 cluster.generate_and_download_infra_env(iso_download_path=cluster.iso_download_path)
+
             cluster.nodes.start_given(given_nodes)
             for node in given_nodes:
                 given_node_ips.append(node.ips[0])
@@ -647,8 +653,10 @@ class BaseTest:
             interface_mac = ""
             network = ""
             if network_xml:
+                log.info(f"crystal logs net xml is defined {network_xml}")
                 network, interface_mac = node.attach_interface(network_xml)
             elif network_name:
+                log.info("crystal logs net xml not defined %s", network_name)
                 interface_mac = node.add_interface(network_name)
                 network = node.get_network_by_name(network_name)
             added_networks.append({"node": node, "network": network, "mac": interface_mac})

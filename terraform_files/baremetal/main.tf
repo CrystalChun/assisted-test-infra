@@ -25,7 +25,7 @@ resource "libvirt_network" "net" {
   domain = "${var.cluster_name}.${var.cluster_domain}"
   addresses = var.machine_cidr_addresses
   autostart = true
-
+  
   dns {
     local_only = true
     dynamic "hosts" {
@@ -59,7 +59,7 @@ resource "libvirt_network" "net" {
     # support choosing DHCP range as a subset of the CIDR.
     # Please change the code when the following issue is done:
     # https://github.com/dmacvicar/terraform-provider-libvirt/issues/794
-    xslt = file("limit_ipv6_dhcp_range.xsl")
+    xslt = file(var.net_xslt_file)
   }
 }
 
@@ -83,6 +83,7 @@ module "masters" {
   cpu_mode          = var.master_cpu_mode
   cluster_domain    = var.cluster_domain
   vtpm2             = var.master_vtpm2
+  boot_devices      = var.master_boot_devices
 
   networks          = [
                         {
@@ -116,6 +117,7 @@ module "workers" {
   cpu_mode          = var.worker_cpu_mode
   cluster_domain    = var.cluster_domain
   vtpm2             = var.worker_vtpm2
+  boot_devices      = var.worker_boot_devices
 
   networks          = [
                         {

@@ -22,6 +22,7 @@ import consts
 from assisted_test_infra.test_infra import BaseClusterConfig, BaseInfraEnvConfig, ClusterName, exceptions, utils
 from assisted_test_infra.test_infra.controllers.load_balancer_controller import LoadBalancerController
 from assisted_test_infra.test_infra.controllers.node_controllers import Node
+from assisted_test_infra.test_infra.controllers.node_controllers.libvirt_controller import LibvirtController
 from assisted_test_infra.test_infra.helper_classes.cluster_host import ClusterHost
 from assisted_test_infra.test_infra.helper_classes.entity import Entity
 from assisted_test_infra.test_infra.helper_classes.events_handler import EventsHandler
@@ -31,7 +32,7 @@ from assisted_test_infra.test_infra.tools import static_network, terraform_utils
 from assisted_test_infra.test_infra.utils import logs_utils, network_utils, operators_utils
 from assisted_test_infra.test_infra.utils.waiting import wait_till_all_hosts_are_in_status
 from service_client import InventoryClient, log
-
+from tests.config import TerraformConfig
 
 class Cluster(Entity):
     MINIMUM_NODES_TO_WAIT = 1
@@ -74,7 +75,11 @@ class Cluster(Entity):
     @property
     def enable_image_download(self):
         return self._config.download_image
-
+    
+    @property
+    def boot_using_ipxe(self):
+        return self._config.ipxe_boot
+    
     def _update_existing_cluster_config(self, api_client: InventoryClient, cluster_id: str):
         existing_cluster: models.cluster.Cluster = api_client.cluster_get(cluster_id)
 
@@ -208,7 +213,7 @@ class Cluster(Entity):
     ) -> Path:
         if self._config.is_static_ip and static_network_config is None:
             static_network_config = static_network.generate_static_network_data_from_tf(self.nodes.controller.tf_folder)
-
+        log.info("crystal logs in generate and download infra envs")
         self.generate_infra_env(
             static_network_config=static_network_config,
             iso_image_type=iso_image_type,
@@ -842,8 +847,35 @@ class Cluster(Entity):
 
     @JunitTestCase()
     def prepare_for_installation(self, **kwargs):
-        super(Cluster, self).prepare_for_installation(**kwargs)
+        log.info("crystal logs in cluster prepare for install")
+        if self._config.ipxe_boot:
+            log.info("in config ipxe boot")
+            infra_env = self.generate_infra_env()
+            network_name = self.nodes.get_cluster_network()
+            log.info("crystal logs boot using ipxe net name %s ", network_name)
+            assisted_service_url = utils.get_assisted_service_url_by_configmap("assisted-service-config", "assisted-installer")
+            ipxe_url = self._config.ipxe_url
+            ipxe_file_download_path = f"/api/assisted-install/v2/infra-envs/{infra_env.id}/downloads/files?file_name=ipxe-script"
+            ipxe_download_url = f"{assisted_service_url}{ipxe_file_download_path}"
+            if  ipxe_url == "":
+                log.info("ipxe url is empty")
+                ipxe_url = ipxe_download_url
+            else:
+                ipxe_download_path = self._config.ipxe_download_path
+                log.info("crystal logs downloading ipxe script from %s to server path %s", ipxe_download_url, ipxe_download_path)
+                utils.download_file(ipxe_download_url, ipxe_download_path, False)
+            log.info("crystal logs the ipxe url %s", ipxe_url)
+            libvirt_controller = LibvirtController(config=TerraformConfig(), entity_config=self._config)
+            libvirt_controller.set_ipxe_url(network_name=network_name, ipxe_url=ipxe_url)
+        else:
+            # ensure file path exists before downloading
+            if not os.path.exists(iso_download_path):
+                utils.recreate_folder(os.path.dirname(iso_download_path), force_recreate=False)
 
+            log.info(f"Downloading image {iso_download_url} to {iso_download_path}")
+            utils.download_file(iso_download_url, iso_download_path, False)
+        super(Cluster, self).prepare_for_installation(**kwargs)
+        log.info("crystal logs after calling entity in cluster prepare for install")
         self.nodes.wait_for_networking()
         self._set_hostnames_and_roles()
         if self._high_availability_mode != consts.HighAvailabilityMode.NONE:
@@ -860,7 +892,7 @@ class Cluster(Entity):
             ip = Cluster.get_ip_for_single_node(self.api_client, self.id, main_cidr)
             self.nodes.controller.set_single_node_ip(ip)
             self.nodes.controller.set_dns(api_vip=ip, ingress_vip=ip)
-
+        
         self.wait_for_ready_to_install()
 
         # in case of regular cluster, need to set dns after vips exits

@@ -103,3 +103,7 @@ class _EnvVariables(DataPool, ABC):
     vsphere_vcenter: EnvVar = EnvVar(["VSPHERE_VCENTER"])
     vsphere_datacenter: EnvVar = EnvVar(["VSPHERE_DATACENTER"])
     vsphere_datastore: EnvVar = EnvVar(["VSPHERE_DATASTORE"])
+    net_xslt_file: EnvVar = EnvVar(["NET_XSLT_FILE"])
+    ipxe_boot: EnvVar = EnvVar(["IPXE_BOOT"], loader=lambda x: bool(strtobool(x)))
+    ipxe_url: EnvVar = EnvVar(["IPXE_URL"])
+    ipxe_download_path: EnvVar = EnvVar(["IPXE_DOWNLOAD_PATH"])

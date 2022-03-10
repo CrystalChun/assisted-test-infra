@@ -26,6 +26,7 @@ class BaseTerraformConfig(BaseNodeConfig, ABC):
     tf_folder: str = None
     network_name: str = None
     storage_pool_path: str = None
+    net_xslt_file: str = None
 
     def __post_init__(self):
         super().__post_init__()

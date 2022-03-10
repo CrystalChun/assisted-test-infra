@@ -251,6 +251,13 @@ def get_remote_assisted_service_url(oc, namespace, service, scheme):
 
     raise RuntimeError(f"could not find any reachable url to {service} service " f"in {namespace} namespace")
 
+def get_assisted_service_url_by_configmap(configmap, namespace):
+    cmd = f"kubectl get configmap {configmap} -n {namespace} -o=jsonpath='{{.data.SERVICE_BASE_URL}}'"
+    url, _, _ = run_command(cmd)
+    if is_assisted_service_reachable(url):
+        return url
+
+    raise RuntimeError(f"The parsed url {url} to assisted service in {configmap} in namespace {namespace} was not found")
 
 def get_local_assisted_service_url(namespace, service, deploy_target):
     if deploy_target in ["onprem"]:

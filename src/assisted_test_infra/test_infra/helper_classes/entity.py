@@ -44,7 +44,7 @@ class Entity(ABC):
         If key doesn't exists in config - KeyError exception is raised
         """
         log.info(f"Updating {self._entity_class_name} configurations to {kwargs}")
-
+        log.info("crystal logs in update_config of entity")
         for k, v in kwargs.items():
             if not hasattr(self._config, k):
                 raise KeyError(f"The key {k} is not present in {self._config.__class__.__name__}")
@@ -52,6 +52,7 @@ class Entity(ABC):
 
     def prepare_for_installation(self, **kwargs):
         self.update_config(**kwargs)
+        log.info("crystal logs in prep for install of entity")
         log.info(
             f"Preparing for installation with {self._entity_class_name} configurations: "
             f"{self._entity_class_name}_config={self._config}"

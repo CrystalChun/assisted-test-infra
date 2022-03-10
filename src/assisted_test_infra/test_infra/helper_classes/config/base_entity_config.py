@@ -26,3 +26,6 @@ class BaseEntityConfig(BaseConfig, ABC):
     base_dns_domain: str = None
     entity_name: BaseName = None
     proxy: models.Proxy = None
+    ipxe_boot: bool = None
+    ipxe_url: str = None
+    ipxe_download_path: str = None

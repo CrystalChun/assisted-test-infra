@@ -23,6 +23,16 @@ variable "worker_disk_count" {
   description = "Number of worker disks."
 }
 
+variable "master_boot_devices" {
+  type        = list(string)
+  description = "the list of boot devices in the desired order of boot for masters"
+}
+
+variable "worker_boot_devices" {
+  type        = list(string)
+  description = "the list of boot devices in the desired order of boot for workers"
+}
+
 variable "cluster_domain" {
   type        = string
   description = "Cluster domain"
@@ -256,9 +266,14 @@ variable "dns_forwarding_file" {
   default = ""
 }
 
-
 variable "dns_forwarding_file_name" {
   type = string
   description = "The file name of dns forwarding file"
   default = ""
+}
+
+variable "net_xslt_file" {
+  type = string
+  description  = "The file name for the xslt file to use for the primary network"
+  default = "limit_ipv6_dhcp_range.xsl"
 }

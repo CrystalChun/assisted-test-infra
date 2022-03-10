@@ -114,6 +114,21 @@ all: setup run deploy_nodes_with_install
 
 destroy: destroy_nodes delete_minikube kill_port_forwardings destroy_onprem stop_load_balancer
 
+##### IPXE STUFF TEST #######
+
+ipxe_server: setup_ipxe_server run_ipxe_server
+
+setup_ipxe_server:
+	mkdir -p build/ipxe_server
+	echo "a script" >  build/ipxe_server/pxe
+
+run_ipxe_server:
+	python3 scripts/ipxe_server.py &> ipxe-server.log & 
+
+ipxe: setup_ipxe_server
+	sudo firewall-cmd --zone=libvirt --add-port=8500/tcp
+	$(MAKE) NUM_MASTERS=1 IPXE_BOOT=true IPXE_URL=$(or ${pxeurl},"http://192.168.122.1:8500/pxe") IPXE_DOWNLOAD_PATH=$(or ${pxepath}, build/ipxe_server/pxe) deploy_nodes_with_install
+
 ###############
 # Environment #
 ###############

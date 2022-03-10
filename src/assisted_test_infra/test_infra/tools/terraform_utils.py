@@ -25,7 +25,7 @@ class TerraformUtils:
 
     @retry(exceptions=TerraformCommandError, tries=10, delay=10)
     def init_tf(self) -> None:
-        self.tf.cmd("init", raise_on_error=True, capture_output=True)
+        self.tf.cmd("init -reconfigure", raise_on_error=True, capture_output=True)
 
     def select_defined_variables(self, **kwargs):
         supported_variables = self.get_variable_list()

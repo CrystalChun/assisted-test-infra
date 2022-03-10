@@ -27,6 +27,8 @@ export REGISTRY_SERVICE_NAME=registry
 export REGISTRY_SERVICE_NAMESPACE=kube-system
 export REGISTRY_SERVICE_PORT=80
 export REGISTRY_SERVICE_HOST_PORT=5000
+export IPXE_SCRIPT_FILE_PATH=${IPXE_SCRIPT_FILE_PATH:-"/downloads/files?file_name=ipxe-script"}
+export IPXE_SCRIPT_URL=${IPXE_SCRIPT_URL:-"${SERVICE_BASE_URL}${IPXE_SCRIPT_FILE_PATH}"}
 
 
 if [[ "${ENABLE_KUBE_API}" == "true" || "${DEPLOY_TARGET}" == "operator" ]]; then
@@ -145,6 +147,8 @@ else
         print_log "Starting port forwarding for deployment/${SERVICE_NAME} on debug port $DEBUG_SERVICE_PORT"
         spawn_port_forwarding_command $SERVICE_NAME $DEBUG_SERVICE_PORT $NAMESPACE $NAMESPACE_INDEX $KUBECONFIG minikube undeclaredip $DEBUG_SERVICE_PORT $DEBUG_SERVICE_NAME
     fi
+    
+    sed -i "s|IPXE_SCRIPT_URL|'${IPXE_SCRIPT_URL}'|" terraform_files/baremetal/ipxe_boot.xsl
 
     add_firewalld_port ${IMAGE_SERVICE_PORT}
     print_log "Starting port forwarding for deployment/${IMAGE_SERVICE_NAME} on debug port $IMAGE_SERVICE_PORT"
