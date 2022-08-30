@@ -107,6 +107,11 @@ class BaseKubeAPI(BaseTest):
             agent.bind(cluster_deployment)
 
     @classmethod
+    def _unbind_all(cls, agents: List[Agent]):
+        for agent in agents:
+            agent.unbind()
+
+    @classmethod
     def _get_vips(cls, nodes: Nodes):
         main_cidr = nodes.controller.get_primary_machine_cidr()
 
@@ -198,6 +203,7 @@ class BaseKubeAPI(BaseTest):
                 "bootstrap_in_place": True,
             }
         )
+        
         log.info("single node ip=%s", single_node_ip)
 
     @classmethod

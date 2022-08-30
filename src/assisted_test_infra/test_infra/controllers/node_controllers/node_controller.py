@@ -214,3 +214,6 @@ class NodeController(ABC):
 
     def set_ipxe_url(self, network_name: str, ipxe_url: str):
         pass
+
+    def add_dns_host_to_network(self, network_name: str, host_ip: str, hostname: str):
+        pass

@@ -118,3 +118,6 @@ class _EnvVariables(DataPool, ABC):
     nutanix_port: EnvVar = EnvVar(["NUTANIX_PORT"], loader=int)
     nutanix_cluster: EnvVar = EnvVar(["NUTANIX_CLUSTER_NAME"])
     nutanix_subnet: EnvVar = EnvVar(["NUTANIX_SUBNET_NAME"])
+
+    reclaim: EnvVar = EnvVar(["RECLAIM"], loader=lambda x: bool(strtobool(x)), default=False)
+    agent_name: EnvVar = EnvVar(["AGENT_NAME"], default="")

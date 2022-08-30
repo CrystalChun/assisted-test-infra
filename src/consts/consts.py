@@ -218,6 +218,7 @@ class AgentStatus:
     INSTALLED = "Installed"
     REQUIREMENTS_MET = "RequirementsMet"
     BOUND = "Bound"
+    RECLAIM = "Reclaiming"
 
 
 all_host_stages = [
