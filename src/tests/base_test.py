@@ -261,16 +261,19 @@ class BaseTest:
 
     @pytest.fixture
     def nodes(self, controller: NodeController) -> Nodes:
+        log.info("nodes")
         return Nodes(controller)
 
     @pytest.fixture
     def infraenv_nodes(self, infraenv_controller: NodeController) -> Nodes:
+        log.info("infraenv nodes")
         return Nodes(infraenv_controller)
 
     @pytest.fixture
     @JunitFixtureTestCase()
     def prepare_nodes(self, nodes: Nodes, cluster_configuration: ClusterConfig) -> Nodes:
         try:
+            log.info("prepare nodes")
             yield nodes
         finally:
             if global_variables.test_teardown:
@@ -284,6 +287,7 @@ class BaseTest:
     @JunitFixtureTestCase()
     def prepare_infraenv_nodes(self, infraenv_nodes: Nodes, infra_env_configuration: InfraEnvConfig) -> Nodes:
         try:
+            log.info("prepare infraenv nodes")
             yield infraenv_nodes
         finally:
             if global_variables.test_teardown:
@@ -294,10 +298,12 @@ class BaseTest:
 
     @classmethod
     def _prepare_nodes_network(cls, prepared_nodes: Nodes, controller_configuration: BaseNodeConfig) -> Nodes:
+        log.info("prepare nodes network")
         if global_variables.platform not in (consts.Platforms.BARE_METAL, consts.Platforms.NONE):
+            log.info("platform is not baremetal or none")
             yield prepared_nodes
             return
-
+        log.info(f"the platform {global_variables.platform}")
         interfaces = cls.nat_interfaces(controller_configuration)  # todo need to fix mismatch config types
         nat = NatController(interfaces, NatController.get_namespace_index(interfaces[0]))
         nat.add_nat_rules()

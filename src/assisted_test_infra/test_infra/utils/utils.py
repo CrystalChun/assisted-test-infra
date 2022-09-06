@@ -590,7 +590,7 @@ def get_kubeapi_protocol_options() -> List[Tuple[bool, bool]]:
     if is_ipv6:  # IPv6 only
         return [(False, True)]
 
-    return [(False, True), (True, False)]
+    return [(True, False)]
 
 
 def get_iso_download_path(entity_name: str):

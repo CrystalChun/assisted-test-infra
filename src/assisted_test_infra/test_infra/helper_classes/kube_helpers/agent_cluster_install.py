@@ -51,6 +51,7 @@ class AgentClusterInstall(BaseCustomResource):
         control_plane_agents: int,
         **kwargs,
     ) -> None:
+        log.info("====================== in agent clusterinstall create")
         body = {
             "apiVersion": f"{self._api_group}/{self._api_version}",
             "kind": self._kind,
@@ -64,6 +65,8 @@ class AgentClusterInstall(BaseCustomResource):
                 **kwargs,
             ),
         }
+        log.info(f"====================== details \napi group {self._api_group}\nversion {self._api_version}\nbody:{body}\nNS:{self.ref.namespace}")
+
 
         self.crd_api.create_namespaced_custom_object(
             group=self._api_group,

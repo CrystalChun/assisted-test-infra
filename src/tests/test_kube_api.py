@@ -9,6 +9,7 @@ import pytest
 import waiting
 from junit_report import JunitFixtureTestCase, JunitTestCase, JunitTestSuite
 
+import consts
 from assisted_test_infra.test_infra import BaseInfraEnvConfig, Nodes, utils
 from assisted_test_infra.test_infra.helper_classes.config import BaseNodeConfig
 from assisted_test_infra.test_infra.helper_classes.hypershift import HyperShift
@@ -323,11 +324,13 @@ class TestLateBinding(BaseKubeAPI):
 
     @pytest.fixture
     def kube_test_configs_late_binding_single_node(self, infraenv_configuration, controller_configuration):
+        log.info("in kube test config late binding sno")
         self._configure_single_node(controller_configuration)
         yield infraenv_configuration, controller_configuration
 
     @pytest.fixture
     def kube_test_configs_late_binding_highly_available(self, infraenv_configuration, controller_configuration):
+        log.info("in kube test config late binding highly available")
         self._configure_highly_available(controller_configuration)
         yield infraenv_configuration, controller_configuration
 
@@ -391,7 +394,7 @@ class TestLateBinding(BaseKubeAPI):
     @pytest.fixture
     @JunitFixtureTestCase()
     @pytest.mark.override_controller_configuration(highly_available_controller_configuration.__name__)
-    def unbound_highly_available_cluster(self, cluster_configuration, kube_api_context):
+    def unbound_highly_available_cluster(self, cluster_configuration, kube_api_context, trigger_configurations):
         yield self.prepare_late_binding_cluster(kube_api_context, cluster_configuration, num_controlplane_agents=3)
 
     @classmethod
@@ -427,7 +430,7 @@ class TestLateBinding(BaseKubeAPI):
             cls._wait_for_install(agent_cluster_install, agents)
 
     @JunitTestCase()
-    def _reclaim_agents(self, agents: List["Agent"], cluster_deployment: ClusterDeployment, nodes: Nodes):
+    def _reclaim_agents(self, agents: List["Agent"]):
         self._unbind_all(agents)
         Agent.wait_for_agents_to_unbound(agents)
         Agent.wait_for_agents_to_reclaim(agents)
@@ -450,8 +453,19 @@ class TestLateBinding(BaseKubeAPI):
             Agent.wait_for_agents_to_unbound(agents)
 
         if global_variables.reclaim_hosts:
-            self._reclaim_agents(agents, cluster_deployment, nodes)
+            self._reclaim_agents(agents)
 
+    @JunitTestSuite()
+    @pytest.mark.kube_api
+    def test_reclaim(self, kube_api_context: KubeAPIContext):
+        api_client = kube_api_context.api_client
+        cluster_deployment = ClusterDeployment(api_client, global_variables.cluster_name, global_variables.spoke_namespace)
+        agent_cr = Agent(api_client, global_variables.cluster_name, global_variables.spoke_namespace)
+        agents = agent_cr.list(agent_cr.crd_api, cluster_deployment, global_variables.spoke_namespace)
+        if global_variables.reclaim_hosts:
+            log.info("starting reclaim")
+            self._reclaim_agents(agents)
+    
     @JunitTestSuite()
     @pytest.mark.kube_api
     def test_late_binding_kube_api_ipv4_highly_available(
@@ -468,6 +482,22 @@ class TestLateBinding(BaseKubeAPI):
         agent_cluster_install.set_ingress_vip(ingress_vip)
 
         self._late_binding_install(cluster_deployment, agent_cluster_install, agents, nodes)
+        if global_variables.reclaim_hosts:
+            log.info("starting reclaim")
+            self._reclaim_agents(agents)
+            workers: List[Agent] = []
+            for agent in agents:
+                log.info(f"agents role {agent.role}")
+                if agent.role == consts.NodeRoles.WORKER:
+                    log.info("found a worker")
+                    workers.append(agent)
+            log.info(f"workers {workers}")
+            if len(workers) > 0:
+                log.info(f"starting reclaim of [{len(workers)}] workers")
+                self._reclaim_agents(agents)
+            log.info(f"finished reclaim with [{len(workers)}] workers")
+        else:
+            log.info("Reclaim hosts variable set to false")
 
     @JunitTestSuite()
     @pytest.mark.kube_api
@@ -498,13 +528,25 @@ class TestLateBinding(BaseKubeAPI):
 
         cluster_deployment = ClusterDeployment(api_client, cluster_name, spoke_namespace)
         cluster_deployment.create(agent_cluster_install_ref=agent_cluster_install.ref, secret=secret)
+        log.info(f"cluster config: {cluster_config}")
+        log.info(f"networks: {cluster_config.cluster_networks}")
 
+        log.info(f"CREATING AGENT CLUSTER INSTALL NOW\n")
+        cidr=""
+        host_prefix=0
+        if cluster_config.cluster_networks != None:
+            cidr=cluster_config.cluster_networks[0].cidr
+            host_prefix=cluster_config.cluster_networks[0].host_prefix
+
+        svc_net =""
+        if cluster_config.service_networks != None:
+            svc_net = cluster_config.service_networks[0].cidr
         agent_cluster_install.create(
             cluster_deployment_ref=cluster_deployment.ref,
             image_set_ref=self.deploy_image_set(cluster_name, api_client),
-            cluster_cidr=cluster_config.cluster_networks[0].cidr,
-            host_prefix=cluster_config.cluster_networks[0].host_prefix,
-            service_network=cluster_config.service_networks[0].cidr,
+            cluster_cidr=cidr,
+            host_prefix=host_prefix,
+            service_network=svc_net,
             ssh_pub_key=cluster_config.ssh_public_key,
             hyperthreading=cluster_config.hyperthreading,
             control_plane_agents=num_controlplane_agents,
