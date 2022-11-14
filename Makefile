@@ -128,7 +128,7 @@ destroy: destroy_nodes delete_minikube kill_port_forwardings destroy_onprem stop
 setup:
 	./scripts/create_full_environment.sh
 
-create_environment: image_build bring_assisted_service start_minikube
+create_environment: image_build bring_assisted_service
 
 image_build:
 	scripts/pull_dockerfile_images.sh
@@ -147,7 +147,7 @@ clean:
 
 start_minikube:
 	scripts/run_minikube.sh
-	eval $(minikube docker-env)
+#eval $(minikube docker-env)
 
 delete_clusters:
 	TEST=./src/tests/test_targets.py TEST_FUNC=test_delete_clusters $(MAKE) test
@@ -271,7 +271,7 @@ deploy_assisted_operator: clear_operator
 # Inventory #
 #############
 
-deploy_assisted_service: start_minikube bring_assisted_service
+deploy_assisted_service:
 	mkdir -p assisted-service/build
 	DEPLOY_TAG=$(DEPLOY_TAG) CONTAINER_COMMAND=$(CONTAINER_COMMAND) NAMESPACE_INDEX=$(shell bash scripts/utils.sh get_namespace_index $(NAMESPACE) $(OC_FLAG)) AUTH_TYPE=$(AUTH_TYPE) scripts/deploy_assisted_service.sh
 

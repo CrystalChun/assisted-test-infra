@@ -111,6 +111,8 @@ function install_libvirt() {
     echo "Adding user ${current_user} to libvirt and qemu groups"
     sudo gpasswd -a $current_user libvirt
     sudo gpasswd -a $current_user qemu
+
+    sudo dnf install -y go
 }
 
 function add_libvirt_listen_flag() {

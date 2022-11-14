@@ -2,7 +2,10 @@
 set -euxo pipefail
 export SUDO=$(if [ -x "$(command -v sudo)" ]; then echo "sudo"; else echo ""; fi)
 
-
+function install_kind() {
+    export PATH=$PATH:$HOME/go/bin
+    go install sigs.k8s.io/kind@v0.17.0 && kind create cluster
+}
 function install_minikube() {
     minikube_version=v1.25.2
     curl --retry 3 -Lo minikube https://storage.googleapis.com/minikube/releases/${minikube_version}/minikube-linux-amd64
@@ -37,6 +40,7 @@ function install_oc() {
 }
 
 
-install_minikube
+#install_minikube
+install_kind
 install_kubectl
 install_oc

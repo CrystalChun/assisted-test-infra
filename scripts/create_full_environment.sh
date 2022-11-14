@@ -39,7 +39,4 @@ echo "Installing minikube and oc"
 scripts/install_minikube.sh
 echo "Done installing minikube and oc"
 
-if [ -z "${NO_MINIKUBE}" ]; then
-    echo "Install and start minikube"
-    make start_minikube
-fi
+
