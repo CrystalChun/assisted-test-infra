@@ -1,7 +1,9 @@
 registry: quay.io
 build-container-image: assisted-test-infra
-build-container-tag: latest
 
+
+containers:
+  assisted-test-infra: Dockerfile.assisted-test-infra
 volumes:
   # programs
   - $(which oc --skip-alias || echo /usr/local/bin/oc):/usr/local/bin/oc
